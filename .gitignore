@@ -28,6 +28,8 @@ MANIFEST
 # PyInstaller
 *.manifest
 *.spec
+# Start Generation Here
+.vscode/
 
 # Installer logs
 pip-log.txt
