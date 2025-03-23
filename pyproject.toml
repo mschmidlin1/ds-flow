@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "dsflow-py"
+version = "0.1.0"
+description = "A library for data science workflows"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+packages = [{include = "ds_flow"}]
+repository = "https://github.com/yourusername/ds-flow"
+keywords = ["data science", "machine learning", "pytorch", "pandas", "scikit-learn"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+torch = "^2.0.0"
+pandas = "^2.0.0"
+scikit-learn = "^1.2.0"
+matplotlib = "^3.7.0"
+plotly = "^5.13.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.3.1"
+black = "^23.3.0"
+isort = "^5.12.0"
+mypy = "^1.2.0"
+flake8 = "^6.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+
+[tool.isort]
+profile = "black"
+line_length = 88 
