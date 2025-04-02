@@ -88,3 +88,281 @@ def ClassificationTransform(img_size=(128, 128)):
 
 
 
+
+
+
+
+import torch
+import torch.nn as nn
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.metrics import classification_report
+
+def prep_RNN_data(bars_df, cols=['close'], test_pct=0.25, scaler=None):
+    array = bars_df[cols].values
+    if scaler!=None:
+        array = scaler.fit_transform(array)
+    train_size = len(array) - int(len(array)*test_pct)
+    train_array = array[:train_size, :]
+    test_array = array[train_size:, :]
+    return train_array, test_array
+
+class RNNDataset(torch.utils.data.Dataset):
+    def __init__(self, data, seq_len, pred_idx=0):
+        """
+        Takes in `data` which is a numpy array and `seq_len` which is an int.
+
+        `pred_idx` is the column index we want to predict.
+        """
+        self.data = data
+        self.seq_len = seq_len
+        self.pred_idx = pred_idx
+        self.data = torch.from_numpy(data).float()
+
+    def __len__(self):
+        return (len(self.data) - self.seq_len) - 1
+    def __getitem__(self, index):
+        return self.data[index : index+self.seq_len, :], self.data[index+self.seq_len, self.pred_idx:self.pred_idx+1]
+
+def to_device(data, device):
+    """Move tensor(s) to chosen device"""
+    if isinstance(data, (list,tuple)):
+        return [to_device(x, device) for x in data]
+    return data.to(device, non_blocking=True)
+
+class DeviceDataLoader():
+    """Wrap a dataloader to move data to a device"""
+    def __init__(self, dl, device):
+        self.dl = dl
+        self.device = device
+        
+    def __iter__(self):
+        """Yield a batch of data after moving it to device"""
+        for b in self.dl: 
+            yield to_device(b, self.device)
+
+    def __len__(self):
+        """Number of batches"""
+        return len(self.dl)
+    
+class RNN(nn.Module):
+    def __init__(self, input_dim, hidden_dim, num_layers, output_dim):
+        super(RNN, self).__init__()
+        # Hidden dimensions
+        self.hidden_dim = hidden_dim
+
+        # Number of hidden layers
+        self.num_layers = num_layers
+
+        # batch_first=True causes input/output tensors to be of shape
+        # (batch_dim, seq_dim, feature_dim)
+        self.rnn = nn.RNN(input_dim, hidden_dim, num_layers, batch_first=True)
+
+        # Readout layer
+        self.fc = nn.Linear(hidden_dim, output_dim)
+
+    def forward(self, x):
+
+        out, hn = self.rnn(x) #by not providing hidden state it is automatically set to 0's
+
+        # out.size() --> batch_size, sequence_length, hidden_size --> torch.Size([32, 50, 100])
+        # out[:, -1, :] --> batch_size, hidden_size -->torch.Size([32, 100]) --> just want last time step! 
+        out = self.fc(out[:, -1, :]) 
+        # out.size() --> batch_size, output_dim --> 100, 1
+        return out
+
+class LSTM(nn.Module):
+    def __init__(self, input_dim, hidden_dim, num_layers, output_dim):
+        super(LSTM, self).__init__()
+        # Hidden dimensions
+        self.hidden_dim = hidden_dim
+
+        # Number of hidden layers
+        self.num_layers = num_layers
+
+        # batch_first=True causes input/output tensors to be of shape
+        # (batch_dim, seq_dim, feature_dim)
+        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True)
+
+        # Readout layer
+        self.fc = nn.Linear(hidden_dim, output_dim)
+
+    def forward(self, x):
+
+        out, (hn, cn) = self.lstm(x) #by not providing hidden state and cell state they are automatically set to 0's
+
+        # out.size() --> batch_size, sequence_length, hidden_size --> torch.Size([32, 50, 100])
+        # out[:, -1, :] --> batch_size, hidden_size -->torch.Size([32, 100]) --> just want last time step! 
+        out = self.fc(out[:, -1, :]) 
+        # out.size() --> batch_size, output_dim --> 100, 1
+        return out
+    
+class GRU(nn.Module):
+    def __init__(self, input_dim, hidden_dim, num_layers, output_dim):
+        super(GRU, self).__init__()
+        # Hidden dimensions
+        self.hidden_dim = hidden_dim
+
+        # Number of hidden layers
+        self.num_layers = num_layers
+
+        # batch_first=True causes input/output tensors to be of shape
+        # (batch_dim, seq_dim, feature_dim)
+        self.gru = nn.GRU(input_dim, hidden_dim, num_layers, batch_first=True)
+
+        # Readout layer
+        self.fc = nn.Linear(hidden_dim, output_dim)
+
+    def forward(self, x):
+
+        out, hn = self.gru(x) #by not providing hidden state it is automatically set to 0's
+
+        # out.size() --> batch_size, sequence_length, hidden_size --> torch.Size([32, 50, 100])
+        # out[:, -1, :] --> batch_size, hidden_size -->torch.Size([32, 100]) --> just want last time step! 
+        out = self.fc(out[:, -1, :]) 
+        # out.size() --> batch_size, output_dim --> 100, 1
+        return out
+
+def fit_model(num_epochs: int, model: nn.Module, train_loader: torch.utils.data.DataLoader, test_loader: torch.utils.data.DataLoader, loss_fn, optimizer: torch.optim, print_divider=10):
+    training_losses = []
+    testing_losses = []
+    
+    for e in range(num_epochs):
+        # Forward pass
+        train_losses = []
+        model.train()
+        for batch in train_loader:
+            X_train, y_train = batch
+            y_train_pred = model(X_train)
+            loss = loss_fn(y_train_pred, y_train)
+            train_losses.append(loss)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+        
+        test_losses = []
+        with torch.inference_mode():
+            model.eval()
+            for batch in test_loader:
+                X_test, y_test = batch
+                y_test_pred = model(X_test)
+                loss = loss_fn(y_test_pred, y_test)
+                test_losses.append(loss)
+
+        training_losses.append(torch.mean(torch.FloatTensor(train_losses)))
+        testing_losses.append(torch.mean(torch.FloatTensor(test_losses)))
+        if e % print_divider == 0:
+            print(f"Epoch {e}  \tTrain MSE: {torch.mean(torch.FloatTensor(train_losses)):.5f}\tTest MSE: {torch.mean(torch.FloatTensor(test_losses)):.5f}")
+    return training_losses, testing_losses
+
+def plot_losses(num_epochs, training_losses, testing_losses, title_addition=''):
+    training_losses = torch.FloatTensor(training_losses).cpu().numpy()
+    testing_losses = torch.FloatTensor(testing_losses).cpu().numpy()
+
+    fig, ax = plt.subplots()
+    ax.plot(np.array(range(num_epochs)), training_losses, c='blue', label='Test Loss')
+    ax.plot(np.array(range(num_epochs)), testing_losses, c='orange', label='Train Loss')
+    ax.legend()
+    ax.set_ylabel("Error")
+    ax.set_xlabel("Epochs")
+
+    ax.set_title(f"Training Vs Testing Losses\n{title_addition}")
+
+def rnn_type_predict(model: nn.Module, array: torch.Tensor, device):
+    """
+    Predicts the next value in a sequence of values. 
+
+    Parameters:
+    -----------
+    `model` : The pytorch model to predict the next value in the sequence. 
+    The model must be Recurrent in nature. Most likely meaning either RNN, LSTM, or GRU.
+    `array` : The sequence of values to find the next value of.
+    `device` : Either a string or pytorch device.
+    """
+    model.eval()
+    array = torch.unsqueeze(array, 0) #unsqueeze once for batch size of 1
+    array = array.to(device)
+    with torch.inference_mode():
+        pred = model(array)
+
+    return float(pred.squeeze().cpu())
+
+def visualize_predictions(model, historical_array, test_dataset, device, title=''):
+
+    #### Make predictions
+    y_pred = []
+    y_true = []
+    for i in range(len(test_dataset)):
+        x_test, y_test = test_dataset[i]
+        y_pred.append(rnn_type_predict(model, x_test, device))
+        y_true.append(float(y_test.squeeze().cpu()))
+
+
+    #### Check classification
+    actual_rise = []
+    pred_rise = []
+    for i in range(1, len(y_pred)):
+        if y_pred[i] > y_true[i-1]:
+            pred_rise.append(1)
+        else:
+            pred_rise.append(0)
+        
+        if y_true[i] > y_true[i-1]:
+            actual_rise.append(1)
+        else:
+            actual_rise.append(0)
+    print(classification_report(actual_rise, pred_rise))
+
+
+
+    y_pred = np.array(y_pred)
+    y_true = np.array(y_true)
+
+    x = np.arange((len(historical_array)+len(y_true)))
+    y = np.append(historical_array, y_true)
+
+    x_preds = np.arange(start=len(historical_array), stop=len(y))
+
+    #print(preds.shape, x_preds.shape)
+
+    fig, ax = plt.subplots()
+    ax.plot(x, y, label='prices')
+    ax.plot(x_preds, y_pred, c='orange', label='predictions')
+    ax.set_title(title)
+    ax.set_ylabel("Closing Price Normalized")
+    ax.set_xlabel("Days from 2015 to 2023")
+    ax.legend()
+    plt.show()
+    return ax
+
+def visualize_chained_predictions(model, train_array, test_array, device, title=''):
+    x = np.arange((len(train_array)+len(test_array)))
+
+    y = np.append(np.squeeze(train_array), np.squeeze(test_array))
+    
+
+    preds = test_array[:51]
+    for i in range(50, len(test_array)-1):
+        X = torch.from_numpy(preds[i-50:i])
+        X = X.type(torch.float)
+        pred = rnn_type_predict(model, X, device)
+        preds = np.expand_dims(np.append(preds, np.array(pred).reshape(1)), 1)
+
+    
+
+    preds = np.squeeze(preds[51:])
+    x_preds = np.arange(start=len(train_array)+50, stop=len(y)-1)
+
+    #print(preds.shape, x_preds.shape)
+
+    fig, ax = plt.subplots()
+
+    ax.plot(x, y, label='prices')
+    ax.plot(x_preds, preds, c='orange', label='predictions')
+    ax.set_title(title)
+    ax.set_ylabel("Closing Prices Normalized")
+    ax.set_xlabel("Days from 2015 to 2023")
+    ax.legend()
+    plt.show()
+    return ax
