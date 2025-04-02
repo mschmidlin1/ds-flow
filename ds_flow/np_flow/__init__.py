@@ -1,5 +1,5 @@
 """
-PyTorch specific utilities and workflows.
+Numpy specific utilities and workflows.
 """
 from pathlib import Path
 import importlib

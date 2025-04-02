@@ -20,6 +20,9 @@ pandas = "^2.0.0"
 scikit-learn = "^1.2.0"
 matplotlib = "^3.7.0"
 plotly = "^5.13.0"
+opencv-python = "^4.11.0.86"
+tqdm = "^4.67.1"
+torchvision = "^0.21.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.1"
