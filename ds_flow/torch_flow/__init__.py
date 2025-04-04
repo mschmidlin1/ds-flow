@@ -9,8 +9,13 @@ import typing
 
 if typing.TYPE_CHECKING:
     # Static imports for type checkers
-    from .math_flow import *
-    from .numpy_utils import *
+    from .datasets import *
+    from .torch_utils import *
+    from .data_loaders import *
+    from .evaluation import *
+    from .models import *
+    from .training import *
+    from .transforms import *
     # Add any other modules here as you create them
     # from .np_extras import *
 

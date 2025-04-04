@@ -2,7 +2,7 @@
 from typing import Counter
 import torch
 import numpy as np
-import torchvision
+
 import math
 
 def get_default_device():
@@ -12,6 +12,9 @@ def get_default_device():
     else:
         return torch.device('cpu')
 
+def get_available_gpus() -> list:
+    available_gpus = [torch.cuda.device(i) for i in range(torch.cuda.device_count())]
+    return available_gpus
 
 def to_device(data, device):
     """Move tensor(s) to chosen device"""
@@ -75,16 +78,7 @@ class Squeeze(object):
         img = torch.squeeze(img)
         return img
 
-def ClassificationTransform(img_size=(128, 128)):
-    return torchvision.transforms.Compose([
-                        torchvision.transforms.Grayscale(num_output_channels=1),
-                        torchvision.transforms.ToTensor(),
-                        torchvision.transforms.Resize(img_size),
-                        torchvision.transforms.RandomCrop(img_size, padding=4, padding_mode='reflect'), 
-                        torchvision.transforms.RandomHorizontalFlip(),
-                        torchvision.transforms.RandomVerticalFlip(), 
-                        torchvision.transforms.RandomRotation(degrees=(0, 180))
-                        ])
+
 
 
 

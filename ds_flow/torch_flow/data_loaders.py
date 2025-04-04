@@ -1,5 +1,8 @@
 
 
+from ds_flow.torch_flow.torch_utils import to_device
+
+
 class DeviceDataLoader():
     """Wrap a dataloader to move data to a device"""
     def __init__(self, dl, device):

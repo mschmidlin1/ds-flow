@@ -1,4 +1,3 @@
-
 from typing import Counter
 import torch
 import torch.nn as nn
@@ -97,3 +96,34 @@ class CNN2(ImageClassificationBase):
             out = self.fc1(out)
             out = self.fc2(out)
             return out
+    
+def create_basic_cnn(num_classes):
+    """Creates a basic CNN for 32x32 images using nn.Sequential.
+    
+    Args:
+        num_classes (int): Number of output classes
+        
+    Returns:
+        nn.Sequential: A CNN with structure:
+            Conv2d -> ReLU -> MaxPool2d -> Conv2d -> ReLU -> MaxPool2d -> Flatten -> Linear -> ReLU -> Linear
+    """
+    return nn.Sequential(
+        # First conv block
+        nn.Conv2d(1, 16, kernel_size=3),  # 32x32 -> 30x30
+        nn.ReLU(),
+        nn.MaxPool2d(kernel_size=2, stride=2),  # 30x30 -> 15x15
+        
+        # Second conv block
+        nn.Conv2d(16, 32, kernel_size=3),  # 15x15 -> 13x13
+        nn.ReLU(),
+        nn.MaxPool2d(kernel_size=2, stride=2),  # 13x13 -> 6x6
+        
+        # Flatten layer
+        nn.Flatten(),  # 6x6x32 = 1152 features
+        
+        # Fully connected layers
+        nn.Linear(6 * 6 * 32, 128),
+        nn.ReLU(),
+        nn.Linear(128, num_classes)
+    )
+    
