@@ -57,7 +57,7 @@ def get_greyscale_classification_transform(img_size=(32, 32)):
     return torchvision.transforms.Compose([
                         OpenCvGrayscale(),  # First convert to grayscale using OpenCV
                         OpenCvToTensor(),   # Then convert to tensor
-                        torchvision.transforms.Resize(img_size),
+                        torchvision.transforms.Resize(img_size, antialias=True),
                         torchvision.transforms.RandomCrop(img_size, padding=4, padding_mode='reflect'), 
                         torchvision.transforms.RandomHorizontalFlip(),
                         torchvision.transforms.RandomVerticalFlip(), 
@@ -74,7 +74,7 @@ def get_rgb_classification_transform(img_size=(32, 32)):
     """
     return torchvision.transforms.Compose([
                         OpenCvToTensor(),   # Convert to tensor (already handles RGB)
-                        torchvision.transforms.Resize(img_size),
+                        torchvision.transforms.Resize(img_size, antialias=True),
                         torchvision.transforms.RandomCrop(img_size, padding=4, padding_mode='reflect'),
                         torchvision.transforms.RandomHorizontalFlip(),
                         torchvision.transforms.RandomVerticalFlip(),
@@ -99,7 +99,7 @@ def get_greyscale_validation_transform(img_size=(32, 32)):
     return torchvision.transforms.Compose([
                         OpenCvGrayscale(),  # First convert to grayscale using OpenCV
                         OpenCvToTensor(),   # Then convert to tensor
-                        torchvision.transforms.Resize(img_size)
+                        torchvision.transforms.Resize(img_size, antialias=True)
                         ])
 
 def get_rgb_validation_transform(img_size=(32, 32)):
@@ -118,5 +118,5 @@ def get_rgb_validation_transform(img_size=(32, 32)):
     """
     return torchvision.transforms.Compose([
                         OpenCvToTensor(),   # Convert to tensor (already handles RGB)
-                        torchvision.transforms.Resize(img_size)
+                        torchvision.transforms.Resize(img_size, antialias=True)
                         ])

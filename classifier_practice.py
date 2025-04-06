@@ -9,9 +9,10 @@ import torch
 from torch.utils.data import DataLoader
 from ds_flow.general_utils import get_venv_name
 from ds_flow.torch_flow import OpenCvImageFolder, get_default_device, get_available_gpus, get_greyscale_classification_transform, \
-    get_greyscale_validation_transform, split_transformed_datasets, DeviceDataLoader, fit, accuracy, plot_history
+    get_greyscale_validation_transform, split_transformed_datasets, DeviceDataLoader, fit, accuracy, plot_history, initialize_dataloaders
 from ds_flow.torch_flow.models import create_basic_cnn
 import torch.nn as nn
+
 
 
 
@@ -40,18 +41,19 @@ if __name__ == "__main__":
 
     train_subset, test_subset = split_transformed_datasets(train_dataset, test_dataset, random_seed=0)
 
-    train_loader = DataLoader(train_subset, 64, shuffle=True, num_workers=4, pin_memory=True)
-    val_loader = DataLoader(test_subset, 64, num_workers=4, pin_memory=True)
+    train_loader = DataLoader(train_subset, 512, shuffle=True, num_workers=4, pin_memory=True, persistent_workers=True)
+    val_loader = DataLoader(test_subset, 512, num_workers=4, pin_memory=True, persistent_workers=True)
 
     train_loader = DeviceDataLoader(train_loader, DEVICE)
     val_loader = DeviceDataLoader(val_loader, DEVICE)
 
+    # Initialize workers for all dataloaders
+    init_time = initialize_dataloaders(
+        [train_loader, val_loader],
+        loader_names=['Training', 'Validation']
+    )
 
-
-
-
-
-    model = create_basic_cnn(len(train_dataset.labels))
+    model = create_basic_cnn(len(train_dataset.label_to_int))
     model.to(DEVICE)
     # #optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9, weight_decay=0.1)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
@@ -78,7 +80,7 @@ if __name__ == "__main__":
     fig.savefig("results.png")
 
     hist_df = pd.DataFrame(history)
-    hist_df = hist_df.applymap(float)
+    hist_df = hist_df.map(float)
     hist_df.to_pickle("results.pkl")
 
 
