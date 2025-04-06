@@ -40,9 +40,9 @@ class OpenCvToTensor:
         return image
 
 
-def get_greyscale_classification_transform(img_size=(32, 32)):
+def get_opencv_greyscale_classification_transform(img_size=(32, 32)):
     """
-    Creates a transform pipeline for grayscale image classification.
+    Creates a transform pipeline for grayscale image classification using OpenCV.
     This transform:
     1. Converts OpenCV BGR images to grayscale
     2. Converts to PyTorch tensor
@@ -64,9 +64,9 @@ def get_greyscale_classification_transform(img_size=(32, 32)):
                         torchvision.transforms.RandomRotation(degrees=(0, 180))
                         ])
 
-def get_rgb_classification_transform(img_size=(32, 32)):
+def get_opencv_rgb_classification_transform(img_size=(32, 32)):
     """
-    Creates a transform pipeline for RGB image classification.
+    Creates a transform pipeline for RGB image classification using OpenCV.
     This transform:
     1. Converts OpenCV BGR images to RGB format
     2. Converts to PyTorch tensor
@@ -82,9 +82,9 @@ def get_rgb_classification_transform(img_size=(32, 32)):
                         torchvision.transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1)
                         ])
 
-def get_greyscale_validation_transform(img_size=(32, 32)):
+def get_opencv_greyscale_validation_transform(img_size=(32, 32)):
     """
-    Creates a transform pipeline for grayscale image validation.
+    Creates a transform pipeline for grayscale image validation using OpenCV.
     This transform only includes essential preprocessing without augmentation:
     1. Converts OpenCV BGR images to grayscale
     2. Converts to PyTorch tensor
@@ -102,9 +102,9 @@ def get_greyscale_validation_transform(img_size=(32, 32)):
                         torchvision.transforms.Resize(img_size, antialias=True)
                         ])
 
-def get_rgb_validation_transform(img_size=(32, 32)):
+def get_opencv_rgb_validation_transform(img_size=(32, 32)):
     """
-    Creates a transform pipeline for RGB image validation.
+    Creates a transform pipeline for RGB image validation using OpenCV.
     This transform only includes essential preprocessing without augmentation:
     1. Converts OpenCV BGR images to RGB format
     2. Converts to PyTorch tensor
@@ -118,5 +118,90 @@ def get_rgb_validation_transform(img_size=(32, 32)):
     """
     return torchvision.transforms.Compose([
                         OpenCvToTensor(),   # Convert to tensor (already handles RGB)
+                        torchvision.transforms.Resize(img_size, antialias=True)
+                        ])
+
+def get_greyscale_classification_transform(img_size=(32, 32)):
+    """
+    Creates a transform pipeline for grayscale image classification using PIL/PyTorch.
+    This transform:
+    1. Converts PIL images to grayscale
+    2. Converts to PyTorch tensor
+    3. Applies standard data augmentation techniques
+    
+    Args:
+        img_size (tuple): Target size for the output images (height, width). Defaults to (32, 32).
+        
+    Returns:
+        torchvision.transforms.Compose: A composed transform pipeline for grayscale image processing
+    """
+    return torchvision.transforms.Compose([
+                        torchvision.transforms.Grayscale(),
+                        torchvision.transforms.ToTensor(),
+                        torchvision.transforms.Resize(img_size, antialias=True),
+                        torchvision.transforms.RandomCrop(img_size, padding=4, padding_mode='reflect'), 
+                        torchvision.transforms.RandomHorizontalFlip(),
+                        torchvision.transforms.RandomVerticalFlip(), 
+                        torchvision.transforms.RandomRotation(degrees=(0, 180))
+                        ])
+
+def get_rgb_classification_transform(img_size=(32, 32)):
+    """
+    Creates a transform pipeline for RGB image classification using PIL/PyTorch.
+    This transform:
+    1. Converts to PyTorch tensor
+    2. Applies standard data augmentation techniques
+    
+    Args:
+        img_size (tuple): Target size for the output images (height, width). Defaults to (32, 32).
+        
+    Returns:
+        torchvision.transforms.Compose: A composed transform pipeline for RGB image processing
+    """
+    return torchvision.transforms.Compose([
+                        torchvision.transforms.ToTensor(),
+                        torchvision.transforms.Resize(img_size, antialias=True),
+                        torchvision.transforms.RandomCrop(img_size, padding=4, padding_mode='reflect'),
+                        torchvision.transforms.RandomHorizontalFlip(),
+                        torchvision.transforms.RandomVerticalFlip(),
+                        torchvision.transforms.RandomRotation(degrees=(0, 180)),
+                        torchvision.transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1)
+                        ])
+
+def get_greyscale_validation_transform(img_size=(32, 32)):
+    """
+    Creates a transform pipeline for grayscale image validation using PIL/PyTorch.
+    This transform only includes essential preprocessing without augmentation:
+    1. Converts PIL images to grayscale
+    2. Converts to PyTorch tensor
+    3. Resizes to target size
+    
+    Args:
+        img_size (tuple): Target size for the output images (height, width). Defaults to (32, 32).
+        
+    Returns:
+        torchvision.transforms.Compose: A composed transform pipeline for grayscale image processing
+    """
+    return torchvision.transforms.Compose([
+                        torchvision.transforms.Grayscale(),
+                        torchvision.transforms.ToTensor(),
+                        torchvision.transforms.Resize(img_size, antialias=True)
+                        ])
+
+def get_rgb_validation_transform(img_size=(32, 32)):
+    """
+    Creates a transform pipeline for RGB image validation using PIL/PyTorch.
+    This transform only includes essential preprocessing without augmentation:
+    1. Converts to PyTorch tensor
+    2. Resizes to target size
+    
+    Args:
+        img_size (tuple): Target size for the output images (height, width). Defaults to (32, 32).
+        
+    Returns:
+        torchvision.transforms.Compose: A composed transform pipeline for RGB image processing
+    """
+    return torchvision.transforms.Compose([
+                        torchvision.transforms.ToTensor(),
                         torchvision.transforms.Resize(img_size, antialias=True)
                         ])
