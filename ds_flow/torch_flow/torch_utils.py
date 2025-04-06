@@ -1,4 +1,3 @@
-
 from typing import Counter
 import torch
 import numpy as np
@@ -24,10 +23,60 @@ def to_device(data, device):
 
 
 def conv2d_output_size(img_size, kernel_size=3 , stride=1, padding=0, dilation=1):
-    return math.floor((img_size+2*padding-dilation*(kernel_size-1)-1)/stride) + 1
+    """Calculate the output size of a convolutional layer.
+
+    This function implements the formula for computing the output size of a 2D convolution operation
+    based on the input parameters according to PyTorch's conventions.
+
+    Args:
+        img_size (int): Size of the input feature map (assuming square input)
+        kernel_size (int, optional): Size of the convolving kernel. Defaults to 3.
+        stride (int, optional): Stride of the convolution. Defaults to 1.
+        padding (int, optional): Zero-padding added to both sides of the input. Defaults to 0.
+        dilation (int, optional): Spacing between kernel elements. Defaults to 1.
+
+    Returns:
+        int: Output size of the feature map after convolution
+
+    Raises:
+        ValueError: If the calculated output size would be less than 1
+
+    Example:
+        >>> conv2d_output_size(32, kernel_size=3, stride=1, padding=1)
+        32
+    """
+    output_size = math.floor((img_size+2*padding-dilation*(kernel_size-1)-1)/stride) + 1
+    if output_size < 1:
+        raise ValueError(f"Invalid parameters: output size {output_size} would be less than 1. Input size {img_size} is too small for given parameters.")
+    return output_size
 
 def max_pool_output_size(img_size, pool_ksize=2, pool_stride=2, pool_padding=0, dilation=1):
-    return math.floor((img_size+(2*pool_padding)-(dilation*pool_ksize-1)-1)/pool_stride) + 1
+    """Calculate the output size of a max pooling layer.
+
+    This function implements the formula for computing the output size of a 2D max pooling operation
+    based on the input parameters according to PyTorch's conventions.
+
+    Args:
+        img_size (int): Size of the input feature map (assuming square input)
+        pool_ksize (int, optional): Size of the pooling window. Defaults to 2.
+        pool_stride (int, optional): Stride of the pooling operation. Defaults to 2.
+        pool_padding (int, optional): Zero-padding added to both sides of the input. Defaults to 0.
+        dilation (int, optional): Spacing between pooling window elements. Defaults to 1.
+
+    Returns:
+        int: Output size of the feature map after max pooling
+
+    Raises:
+        ValueError: If the calculated output size would be less than 1
+
+    Example:
+        >>> max_pool_output_size(32, pool_ksize=2, pool_stride=2)
+        16
+    """
+    output_size = math.floor((img_size+(2*pool_padding)-(dilation*pool_ksize-1)-1)/pool_stride) + 1
+    if output_size < 1:
+        raise ValueError(f"Invalid parameters: output size {output_size} would be less than 1. Input size {img_size} is too small for given parameters.")
+    return output_size
 
 def count_model_parameters(model):
     params_list = []

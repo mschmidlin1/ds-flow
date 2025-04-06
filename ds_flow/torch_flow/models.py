@@ -2,6 +2,8 @@ from typing import Counter
 import torch
 import torch.nn as nn
 
+from ds_flow.torch_flow.torch_utils import conv2d_output_size, max_pool_output_size
+
 
 
 
@@ -97,16 +99,29 @@ class CNN2(ImageClassificationBase):
             out = self.fc2(out)
             return out
     
-def create_basic_cnn(num_classes):
-    """Creates a basic CNN for 32x32 images using nn.Sequential.
+def create_basic_cnn(num_classes, img_size=32):
+    """Creates a basic CNN that can handle variable input image sizes.
     
     Args:
         num_classes (int): Number of output classes
+        img_size (int, optional): Size of input images (assumes square). Defaults to 32.
         
     Returns:
         nn.Sequential: A CNN with structure:
             Conv2d -> ReLU -> MaxPool2d -> Conv2d -> ReLU -> MaxPool2d -> Flatten -> Linear -> ReLU -> Linear
     """
+    # Calculate sizes after each layer
+    # First conv block
+    conv1_size = conv2d_output_size(img_size, kernel_size=3)  # First conv layer
+    pool1_size = max_pool_output_size(conv1_size, pool_ksize=2, pool_stride=2)  # First pool layer
+    
+    # Second conv block
+    conv2_size = conv2d_output_size(pool1_size, kernel_size=3)  # Second conv layer
+    pool2_size = max_pool_output_size(conv2_size, pool_ksize=2, pool_stride=2)  # Second pool layer
+    
+    # Calculate flattened feature size
+    flattened_features = pool2_size * pool2_size * 32
+    
     return nn.Sequential(
         # First conv block
         nn.Conv2d(1, 16, kernel_size=3),  # 32x32 -> 30x30
@@ -122,7 +137,7 @@ def create_basic_cnn(num_classes):
         nn.Flatten(),  # 6x6x32 = 1152 features
         
         # Fully connected layers
-        nn.Linear(6 * 6 * 32, 128),
+        nn.Linear(flattened_features, 128),
         nn.ReLU(),
         nn.Linear(128, num_classes)
     )

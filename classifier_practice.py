@@ -28,12 +28,12 @@ if __name__ == "__main__":
     print(f"Device name: '{DEVICE}'")
     print(f"Virtual environment name: '{get_venv_name()}'")
 
-
+    IMG_SIZE = 32
 
     # train_dataset = OpenCvImageFolder("data/cifar10_combined_images", get_opencv_greyscale_classification_transform())
     # test_dataset = OpenCvImageFolder("data/cifar10_combined_images", get_opencv_greyscale_validation_transform())
-    train_dataset = torchvision.datasets.ImageFolder("data/cifar10_combined_images", transform=get_greyscale_classification_transform())
-    test_dataset = torchvision.datasets.ImageFolder("data/cifar10_combined_images", transform=get_greyscale_validation_transform())
+    train_dataset = torchvision.datasets.ImageFolder("data/cifar10_combined_images", transform=get_greyscale_classification_transform(img_size=(IMG_SIZE, IMG_SIZE)))
+    test_dataset = torchvision.datasets.ImageFolder("data/cifar10_combined_images", transform=get_greyscale_validation_transform(img_size=(IMG_SIZE, IMG_SIZE)))
 
 
     class_counts = dict(Counter(train_dataset.targets))
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     )
 
     # model = create_basic_cnn(len(train_dataset.label_to_int))
-    model = create_basic_cnn(len(train_dataset.classes))
+    model = create_basic_cnn(len(train_dataset.classes), img_size=IMG_SIZE)
     model.to(DEVICE)
     # #optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9, weight_decay=0.1)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
