@@ -9,14 +9,15 @@ import torch
 from torch.utils.data import DataLoader
 from ds_flow.general_utils import get_venv_name
 from ds_flow.torch_flow import OpenCvImageFolder, get_default_device, get_available_gpus, get_greyscale_classification_transform, \
-    get_greyscale_validation_transform, split_transformed_datasets, DeviceDataLoader, fit, accuracy, plot_history, initialize_dataloaders, get_opencv_greyscale_classification_transform, get_opencv_greyscale_validation_transform
+    get_greyscale_validation_transform, split_transformed_datasets, DeviceDataLoader, fit, accuracy, plot_history, initialize_dataloaders, \
+        get_opencv_greyscale_classification_transform, get_opencv_greyscale_validation_transform, get_rgb_classification_transform, get_rgb_validation_transform
 from ds_flow.torch_flow.models import create_basic_cnn
 import torch.nn as nn
 import torchvision
 
 
-
-
+EPOCHS = 10
+IMG_SIZE = 32
 
 
 if __name__ == "__main__":
@@ -28,12 +29,12 @@ if __name__ == "__main__":
     print(f"Device name: '{DEVICE}'")
     print(f"Virtual environment name: '{get_venv_name()}'")
 
-    IMG_SIZE = 32
+
 
     # train_dataset = OpenCvImageFolder("data/cifar10_combined_images", get_opencv_greyscale_classification_transform())
     # test_dataset = OpenCvImageFolder("data/cifar10_combined_images", get_opencv_greyscale_validation_transform())
-    train_dataset = torchvision.datasets.ImageFolder("data/cifar10_combined_images", transform=get_greyscale_classification_transform(img_size=(IMG_SIZE, IMG_SIZE)))
-    test_dataset = torchvision.datasets.ImageFolder("data/cifar10_combined_images", transform=get_greyscale_validation_transform(img_size=(IMG_SIZE, IMG_SIZE)))
+    train_dataset = torchvision.datasets.ImageFolder("data/cifar10_combined_images", transform=get_rgb_classification_transform(img_size=(IMG_SIZE, IMG_SIZE)))
+    test_dataset = torchvision.datasets.ImageFolder("data/cifar10_combined_images", transform=get_rgb_validation_transform(img_size=(IMG_SIZE, IMG_SIZE)))
 
 
     class_counts = dict(Counter(train_dataset.targets))
@@ -58,17 +59,18 @@ if __name__ == "__main__":
     )
 
     # model = create_basic_cnn(len(train_dataset.label_to_int))
-    model = create_basic_cnn(len(train_dataset.classes), img_size=IMG_SIZE)
+    model = create_basic_cnn(len(train_dataset.classes), img_size=IMG_SIZE, in_channels=3)
     model.to(DEVICE)
     # #optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9, weight_decay=0.1)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
-    loss_fn = nn.CrossEntropyLoss(weight=CLASS_WEIGHTS)
+    # loss_fn = nn.CrossEntropyLoss(weight=CLASS_WEIGHTS)
+    loss_fn = nn.CrossEntropyLoss()
 
     # #lr_scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.01, steps_per_epoch=len(train_loader), epochs=EPOCHS, anneal_strategy='cos')
 
     dttm_str = datetime.datetime.now().__str__().replace(":",".")
-    EPOCHS = 3
+
     history = fit(
         EPOCHS, 
         model, 
@@ -79,14 +81,14 @@ if __name__ == "__main__":
         None, 
         secondary_metric=accuracy, 
         secondary_metric_name="accuracy",
-        save_file="file.pth")
+        save_file="output/weights.pth")
 
     fig, ax = plot_history(history)
-    fig.savefig("results.png")
+    fig.savefig("output/results.png")
 
     hist_df = pd.DataFrame(history)
     hist_df = hist_df.map(float)
-    hist_df.to_pickle("results.pkl")
+    hist_df.to_pickle("output/results.pkl")
 
 
 

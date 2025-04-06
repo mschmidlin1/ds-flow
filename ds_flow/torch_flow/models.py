@@ -99,11 +99,12 @@ class CNN2(ImageClassificationBase):
             out = self.fc2(out)
             return out
     
-def create_basic_cnn(num_classes, img_size=32):
-    """Creates a basic CNN that can handle variable input image sizes.
+def create_basic_cnn(num_classes, in_channels=1, img_size=32):
+    """Creates a basic CNN that can handle variable input image sizes and channels.
     
     Args:
         num_classes (int): Number of output classes
+        in_channels (int, optional): Number of input channels (1 for grayscale, 3 for RGB). Defaults to 1.
         img_size (int, optional): Size of input images (assumes square). Defaults to 32.
         
     Returns:
@@ -123,8 +124,7 @@ def create_basic_cnn(num_classes, img_size=32):
     flattened_features = pool2_size * pool2_size * 32
     
     return nn.Sequential(
-        # First conv block
-        nn.Conv2d(1, 16, kernel_size=3),  # 32x32 -> 30x30
+        nn.Conv2d(in_channels, 16, kernel_size=3),  # Now works with any number of input channels
         nn.ReLU(),
         nn.MaxPool2d(kernel_size=2, stride=2),  # 30x30 -> 15x15
         
