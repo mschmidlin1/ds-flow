@@ -167,6 +167,26 @@ def get_rgb_classification_transform(img_size=(32, 32)):
                         torchvision.transforms.RandomRotation(degrees=(0, 180)),
                         torchvision.transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1)
                         ])
+def get_rgb_classification_transform_light(img_size=(32, 32)):
+    """
+    Creates a transform pipeline for RGB image classification using PIL/PyTorch.
+    This transform:
+    1. Converts to PyTorch tensor
+    2. Applies standard data augmentation techniques
+    
+    Args:
+        img_size (tuple): Target size for the output images (height, width). Defaults to (32, 32).
+        
+    Returns:
+        torchvision.transforms.Compose: A composed transform pipeline for RGB image processing
+    """
+    return torchvision.transforms.Compose([
+                        torchvision.transforms.ToTensor(),
+                        torchvision.transforms.Resize(img_size, antialias=True),
+                        torchvision.transforms.RandomHorizontalFlip(),
+                        torchvision.transforms.RandomVerticalFlip(),
+                        torchvision.transforms.RandomRotation(degrees=(0, 180))
+                        ])
 
 def get_greyscale_validation_transform(img_size=(32, 32)):
     """

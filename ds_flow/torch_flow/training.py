@@ -63,7 +63,7 @@ def fit(epochs: int, model: nn.Module, train_loader: DeviceDataLoader, val_loade
         secondary_metric_string = ''
         if secondary_metric != None:
             test_metric = model_evaluate(model, val_loader, secondary_metric, evaluation_type=f'testing data {secondary_metric_name}', agg_func=agg_func)
-            train_metric = model_evaluate(model, train_loader, secondary_metric, evaluation_type=f'testing data {secondary_metric_name}', agg_func=agg_func)
+            train_metric = model_evaluate(model, train_loader, secondary_metric, evaluation_type=f'training data {secondary_metric_name}', agg_func=agg_func)
             history[f'train_{secondary_metric_name}'].append(train_metric)
             history[f'test_{secondary_metric_name}'].append(test_metric)
             secondary_metric_string = f"\tTrain {secondary_metric_name}: {train_metric}\tTest {secondary_metric_name}: {test_metric}"
@@ -107,7 +107,7 @@ def fit(epochs: int, model: nn.Module, train_loader: DeviceDataLoader, val_loade
         secondary_metric_string = ''
         if secondary_metric != None:
             test_metric = model_evaluate(model, val_loader, secondary_metric, evaluation_type=f'testing data {secondary_metric_name}', agg_func=agg_func)
-            train_metric = model_evaluate(model, train_loader, secondary_metric, evaluation_type=f'testing data {secondary_metric_name}', agg_func=agg_func)
+            train_metric = model_evaluate(model, train_loader, secondary_metric, evaluation_type=f'training data {secondary_metric_name}', agg_func=agg_func)
             history[f'train_{secondary_metric_name}'].append(train_metric)
             history[f'test_{secondary_metric_name}'].append(test_metric)
             secondary_metric_string = f"\tTrain {secondary_metric_name}: {train_metric}\tTest {secondary_metric_name}: {test_metric}"
