@@ -21,7 +21,7 @@ matplotlib = "^3.7.0"
 plotly = "^5.13.0"
 opencv-python = "^4.11.0.86"
 tqdm = "^4.67.1"
-torch = {url = "https://download.pytorch.org/whl/cu126/torch-2.6.0%2Bcu126-cp311-cp311-win_amd64.whl"}
+torch = {version = "^2.6.0", source = "torch"}
 torchvision = "^0.21.0"
 torchaudio = "^2.6.0"
 
@@ -42,4 +42,9 @@ target-version = ['py311']
 
 [tool.isort]
 profile = "black"
-line_length = 88 
+line_length = 88
+
+[[tool.poetry.source]]
+name = "torch"
+url = "https://download.pytorch.org/whl/cu126"
+priority = "explicit" 
